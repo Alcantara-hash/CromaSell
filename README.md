@@ -1,1 +1,3 @@
 "# CromaSell" 
+
+Equipo: 
