@@ -1,2 +1,1 @@
 "# CromaSell" 
-"# borrar" 
