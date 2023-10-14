@@ -1,9 +1,12 @@
 import tkinter as tk
+from baseDeDatos2 import BaseDeDatos
 
-class VentanaPanel(tk.Tk):
-
+class VentanaCuentas(tk.Tk):
     def __init__(self):
         super().__init__()
+
+        # Instancia de BaseDeDatos
+        self.bd = BaseDeDatos
 
         # Aspectos de la ventana
         self.title("CromaSell")
@@ -15,11 +18,3 @@ class VentanaPanel(tk.Tk):
 
         agregarCuentas_button = tk.Button(self, text= "Agregar cuenta", command= self.agregar_cuentas)
         agregarCuentas_button.pack()
-    
-    def agregar_cuentas(self):
-        pass
-
-    
-if __name__ == '__main__':
-    app = VentanaPanel()
-    app.mainloop()
