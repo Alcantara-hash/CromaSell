@@ -1,4 +1,5 @@
 import tkinter as tk
+from ventanaCuentas import VentanaCuentas
 
 class VentanaPanel(tk.Tk):
 
@@ -17,7 +18,8 @@ class VentanaPanel(tk.Tk):
         agregarCuentas_button.pack()
     
     def agregar_cuentas(self):
-        pass
+        ventana_cuentas= VentanaCuentas()
+        ventana_cuentas.mainloop()
 
     
 if __name__ == '__main__':
