@@ -5,9 +5,6 @@ class VentanaCuentas(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        # Instancia de BaseDeDatos
-        self.bd = BaseDeDatos
-
         # Aspectos de la ventana
         self.title("CromaSell")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
@@ -16,5 +13,9 @@ class VentanaCuentas(tk.Tk):
         prueba_label = tk.Label(self, text = "Ventana Panel")
         prueba_label.pack()
 
-        agregarCuentas_button = tk.Button(self, text= "Agregar cuenta", command= self.agregar_cuentas)
+        agregarCuentas_button = tk.Button(self, text= "Agregar cuenta", command= "")
         agregarCuentas_button.pack()
+
+if __name__ == '__main__':
+    app = VentanaCuentas()
+    app.mainloop()
