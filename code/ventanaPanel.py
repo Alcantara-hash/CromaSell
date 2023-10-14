@@ -6,6 +6,8 @@ class VentanaPanel(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        self.db = BaseDeDatos
+
         self.title("CromaSell")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
 
