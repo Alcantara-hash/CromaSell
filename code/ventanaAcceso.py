@@ -48,9 +48,9 @@ class VentanaAcceso(tk.Tk):
                 ventana_principal.mainloop()
                 bd.cerrar_conexion()
             else:
-                messagebox.showerror("Aviso", "La contraseña es incorrecta.")
+                messagebox.showwarning("Aviso", "La contraseña es incorrecta.")
         else:
-            messagebox.showerror("Aviso", "Nombre de usuario no encontrado.")
+            messagebox.showwarning("Aviso", "Nombre de usuario no encontrado.")
 
 if __name__ == '__main__':
 

@@ -6,9 +6,6 @@ class VentanaCuentas(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        # Instancia de BaseDeDatos
-        self.db = BaseDeDatos
-
         # Aspectos de la ventana
         self.title("Administrar cuentas")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
@@ -41,7 +38,16 @@ class VentanaCuentas(tk.Tk):
         if self.contrasena_entry.get() == self.contrasena2_entry.get():
             contrasena = self.contrasena2_entry.get()
         else:
-            messagebox.showerror("Aviso", "Las contraseñas no coinciden.")
+            messagebox.showwarning("Aviso", "Las contraseñas no coinciden.")
+        
+        # Instancia de BaseDeDatos
+        """
+        try:
+            self.db = BaseDeDatos("127.0.0.1", "root", "", "")
+
+        except mysql.connector.Error as error:
+            messagebox.showerror("")
+        """
 
 if __name__ == '__main__':
     app = VentanaCuentas()
