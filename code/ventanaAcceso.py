@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-from baseDeDatos import BaseDeDatos
+from baseDeDatos2 import BaseDeDatos
+from baseDeDatos2 import archivo_JSON
 from ventanaPanel import VentanaPanel
 
 class VentanaAcceso(tk.Tk):
@@ -21,7 +22,7 @@ class VentanaAcceso(tk.Tk):
 
         contrasena_label = tk.Label(self, text = "Contrasena")
         contrasena_label.pack()
-
+        
         self.contrasena_entry = tk.Entry(self, show = "*")
         self.contrasena_entry.pack(pady = 5)
 
@@ -33,14 +34,16 @@ class VentanaAcceso(tk.Tk):
         usuario = self.usuario_entry.get()
         contrasena = self.contrasena_entry.get()
 
-        # Instancia de la clase "BaseDeDatos"
-        bd = BaseDeDatos()
+        # Conexion a la Base de Datos
+        datos_JSON = archivo_JSON()
+        host, user, password, database = datos_JSON.leer_JSON()
+        bd = BaseDeDatos(host, user, password, database)
         # Consulta a la BD
-        bd.cursor.execute("SELECT contrasena FROM usuarios WHERE usuario= ?", (usuario,))
-        resultado = bd.cursor.fetchone()
+        usuario_bd = bd.obtener_datos("SELECT contrasena FROM cuentas WHERE usuario= %s", (usuario))
+        
         # Validacion de credenciales
-        if resultado:
-            contrasena_guardada = resultado[0]
+        if usuario_bd:
+            contrasena_guardada = usuario_bd
             if contrasena == contrasena_guardada:
 
                 self.destroy()

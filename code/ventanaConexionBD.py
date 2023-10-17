@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from baseDeDatos2 import BaseDeDatos
+import json
 
 class ventanaConexionBD(tk.Tk):
     def __init__(self):
@@ -40,14 +41,7 @@ class ventanaConexionBD(tk.Tk):
         conexion_button.pack()
     
     def conexion(self):
-        try:
-            bd = BaseDeDatos(self.host_entry.get(), self.user_entry.get(), self.password_entry.get(), self.database_entry.get())
-        except Exception as error:
-            messagebox.showerror("!Error¡", "No se logro la conexíon con la Base de Datos.\n{error}")
-        else:
-            messagebox.showinfo("Aviso", "Conexion establecida.")
-            bd.cerrar_conexion()
-
+        pass
 
 if __name__ == '__main__':
     app = ventanaConexionBD()

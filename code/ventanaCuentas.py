@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from baseDeDatos2 import archivo_JSON
 from baseDeDatos2 import BaseDeDatos
 
 class VentanaCuentas(tk.Tk):
@@ -29,25 +30,33 @@ class VentanaCuentas(tk.Tk):
         self.contrasena2_entry = tk.Entry(self, show= "*")
         self.contrasena2_entry.pack(pady = 5)
 
-        agregarUsuario_button = tk.Button(self, text= "Agregar cuenta", command= self.agregar_cuentas)
+        agregarUsuario_button = tk.Button(self, text= "Agregar cuenta", command= self.agregar_cuenta)
         agregarUsuario_button.pack()
 
-    def agregar_cuentas(self):
+    def agregar_cuenta(self):
 
-        usuario = self.usuario_entry.get()
-        if self.contrasena_entry.get() == self.contrasena2_entry.get():
-            contrasena = self.contrasena2_entry.get()
+        usuario = str(self.usuario_entry.get())
+        if self.contrasena_entry.get() != self.contrasena2_entry.get():
+            contrasena = self.contrasena2_entry
+            messagebox.showerror("Error", "Las contrasenas no coinciden")
+            # Establecer conexion a la BD
         else:
-            messagebox.showwarning("Aviso", "Las contraseñas no coinciden.")
-        
-        # Instancia de BaseDeDatos
-        """
-        try:
-            self.db = BaseDeDatos("127.0.0.1", "root", "", "")
+            contrasena = str(self.contrasena2_entry)
+            try:
+                # Credenciales de acceso a la BD
+                datos_JSON = archivo_JSON()
+                host, user, password, database = datos_JSON.leer_JSON()
 
-        except mysql.connector.Error as error:
-            messagebox.showerror("")
-        """
+                # Conexion a la Base de Datos
+                bd = BaseDeDatos(host, user, password, database)
+
+                contrasena_hasheada = bd.hash(contrasena)
+                bd.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena) VALUES(%s, %s)",(usuario, contrasena_hasheada))
+
+                messagebox.showinfo("Aviso", "Cuenta almacenada con exito")
+
+            except Exception as e:
+                messagebox.showerror("Error de conexíon", str(e))
 
 if __name__ == '__main__':
     app = VentanaCuentas()
