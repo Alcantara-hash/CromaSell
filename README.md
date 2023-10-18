@@ -1,3 +1,6 @@
 "# CromaSell" 
 
 Equipo: 
+
+- Marcos
+- Alcantara
