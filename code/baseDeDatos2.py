@@ -3,6 +3,7 @@ from mysql.connector import errorcode
 import json
 import hashlib
 import os
+from tkinter import messagebox as msj
 
 class archivo_JSON():
     def __init__(self):
@@ -40,7 +41,8 @@ class archivo_JSON():
 
 
 class BaseDeDatos():
-    def __init__(self, host, user, password, database):
+    def __init__(self):
+        """
         try:
             self.connection = mysql.connector.connect(
             host = host,
@@ -55,8 +57,21 @@ class BaseDeDatos():
                 self.errores = error
             else:
                 self.errores = error
-
-        self.cursor = self.connection.cursor()
+        """
+        #self.connection = mysql.connector.connect()
+        #self.cursor = self.connection.cursor()
+    
+    def conexion(self, host, user, password, database):
+        try:
+            self.connection = mysql.connector.connect(
+                host = host,
+                user = user,
+                password = password,
+                database = database
+            )
+            self.cursor = self.connection.cursor()
+        except mysql.connector.Error as error:
+            return f"Tipo de error: {error}"
 
     def ejecutar_consulta(self, query, values= None):
         try:
@@ -65,11 +80,14 @@ class BaseDeDatos():
             return True        
         except mysql.connector.Error as error:
             self.connection.rollback()
-            return False
+            return False, error
     
     def obtener_datos(self, query, values= None):
-        self.cursor.execute(query, values)
-        return self.cursor.fetchall()
+        try:
+            self.cursor.execute(query, values)
+            return self.cursor.fetchall()
+        except mysql.connector.Error as error:
+            return error
     
     def cerrar_conexion(self):
         self.cursor.close()
@@ -78,9 +96,7 @@ class BaseDeDatos():
     def obtener_error(self):
         return self.errores
     
-    def hash(self, contrasena):
-        # Salt aleatorio, lo que crea una cadena de 16 bytes (128 bits) de entropía aleatoria.
-        salt = os.urandom(16)
+    def hash(self, contrasena, salt):
         """
         PBKDF2 es una función criptográfica que se utiliza para derivar una clave secreta a partir de una contraseña y un salt.
         """
@@ -88,23 +104,46 @@ class BaseDeDatos():
         En el código, se utiliza hashlib.pbkdf2_hmac para aplicar PBKDF2 con el algoritmo de hash SHA-256 y 100,000 iteraciones. 
         Esto significa que el proceso se realiza 100,000 veces para aumentar la seguridad.
         """
-        hash_contrasena = hashlib.pbkdf2_hmac("sha256", contrasena.encode("utf-8"), salt, 10000)
-        # Ademas de todo el encriptado, el resultado se pasa a Base16.
-        hash_contrasena.hex()
+        # Salt aleatorio, lo que crea una cadena de 16 bytes (128 bits) de entropía aleatoria.
+        #salt = os.urandom(16)
+        #guardar_salt = salt
 
-        return hash_contrasena
+        # Aplicacion del Hash
+        try:
+            hash_contrasena = hashlib.pbkdf2_hmac("sha256", contrasena.encode("utf-8"), salt, 10000)
+            return hash_contrasena
+        except Exception as error:
+            return f"Tipo de error: {error}"
+        # Ademas de todo el encriptado, el resultado se pasa a Base16.
+        #hash_contrasena.hex()
 
 
 
 if __name__ == '__main__':
 
     archivo_JSON = archivo_JSON()
-    archivo_JSON.crear_JSON("127.0.0.1", "root", "", "cromasell")
-
     host, user, password, database = archivo_JSON.leer_JSON()
-    print(user)
 
-    # Conexion al BD
-    bd = BaseDeDatos(host, user, password, database)
-    bd.agregar_cuenta("Tadeo", "12345hola")
-    bd.cerrar_conexion()
+    db = BaseDeDatos()
+    db.conexion(host, user, password, database)
+
+    # Agregar cuenta
+    usuario = "admin"
+    contrasena = "root1"
+    salt = os.urandom(16)
+
+    contrasena_hasheada = db.hash(contrasena, salt)
+
+    agregar_cuenta = db.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s,)", (usuario, contrasena_hasheada, salt))
+
+    if isinstance(agregar_cuenta, str):
+        msj.showerror("error", agregar_cuenta)
+    else:
+        msj.showinfo("aviso", "cuenta guardada")
+
+    #credenciales_bd = db.obtener_datos("SELECT salt FROM cuentas WHERE usuario = %s and contrasena = %s", (user, contrasena, salt))
+
+
+    db.hash()
+
+    db.cerrar_conexion()

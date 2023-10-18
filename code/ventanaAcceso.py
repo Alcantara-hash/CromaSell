@@ -9,6 +9,10 @@ class VentanaAcceso(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # Instancia BaseDeDatos
+        self.mysql = BaseDeDatos()
+
+        # Atributos de la ventana
         self.title("Acceso")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
 
@@ -32,28 +36,32 @@ class VentanaAcceso(tk.Tk):
     def acceso(self):
         # Obtener datos tanto de "Usuario", como de "Contrasena"
         usuario = self.usuario_entry.get()
-        contrasena = self.contrasena_entry.get()
+        contrasena = self.mysql.hash(self.contrasena_entry.get())
 
-        # Conexion a la Base de Datos
+        # Importar las credenciales de acceso a la BD
         datos_JSON = archivo_JSON()
         host, user, password, database = datos_JSON.leer_JSON()
-        bd = BaseDeDatos(host, user, password, database)
-        # Consulta a la BD
-        usuario_bd = bd.obtener_datos("SELECT contrasena FROM cuentas WHERE usuario= %s", (usuario))
-        
-        # Validacion de credenciales
-        if usuario_bd:
-            contrasena_guardada = usuario_bd
-            if contrasena == contrasena_guardada:
-
-                self.destroy()
-                ventana_principal = VentanaPanel()
-                ventana_principal.mainloop()
-                bd.cerrar_conexion()
-            else:
-                messagebox.showwarning("Aviso", "La contraseña es incorrecta.")
+        # Conexión a la BD
+        conn = self.mysql.conexion(host, user, password, database)
+        if isinstance(conn, str):
+            messagebox.showerror("Error", conn)
         else:
-            messagebox.showwarning("Aviso", "Nombre de usuario no encontrado.")
+            messagebox.showinfo("Aviso", "Conexión exitosa")
+            #self.mysql.cerrar_conexion()
+            credenciales_bd = self.mysql.obtener_datos("SELECT COUNT(*) FROM cuentas WHERE usuario = %s and contrasena = %s", (usuario, contrasena))
+
+            if isinstance(credenciales_bd, str):
+                messagebox.showerror("Error", credenciales_bd)
+            else:
+                """
+                resultado = credenciales_bd[0]
+                if resultado > 0:
+                    ventanaPanel = VentanaPanel()
+                    ventanaPanel.mainloop()
+                else:
+                    messagebox.showwarning("Aviso", "Cuenta no encontrada")
+                """
+                messagebox.showinfo("aviso", credenciales_bd)
 
 if __name__ == '__main__':
 

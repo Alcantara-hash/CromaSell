@@ -7,6 +7,9 @@ class VentanaCuentas(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # Instancia de BaseDeDatos
+        self.mysql = BaseDeDatos()
+
         # Aspectos de la ventana
         self.title("Administrar cuentas")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
@@ -48,10 +51,10 @@ class VentanaCuentas(tk.Tk):
                 host, user, password, database = datos_JSON.leer_JSON()
 
                 # Conexion a la Base de Datos
-                bd = BaseDeDatos(host, user, password, database)
+                self.mysql.conexion(host, user, password, database)
 
-                contrasena_hasheada = bd.hash(contrasena)
-                bd.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena) VALUES(%s, %s)",(usuario, contrasena_hasheada))
+                contrasena_hasheada, salt = self.mysql.hash(contrasena)
+                self.mysql.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s)",(usuario, contrasena_hasheada, salt))
 
                 messagebox.showinfo("Aviso", "Cuenta almacenada con exito")
 
