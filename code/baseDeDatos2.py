@@ -42,24 +42,7 @@ class archivo_JSON():
 
 class BaseDeDatos():
     def __init__(self):
-        """
-        try:
-            self.connection = mysql.connector.connect(
-            host = host,
-            user = user,
-            password = password,
-            database = database
-            )
-        except mysql.connector.Error as error:
-            if error.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                self.errores = error
-            elif error.errno == errorcode.ER_BAD_DB_ERROR:
-                self.errores = error
-            else:
-                self.errores = error
-        """
-        #self.connection = mysql.connector.connect()
-        #self.cursor = self.connection.cursor()
+        pass
     
     def conexion(self, host, user, password, database):
         try:
@@ -93,9 +76,6 @@ class BaseDeDatos():
         self.cursor.close()
         self.connection.close()
     
-    def obtener_error(self):
-        return self.errores
-    
     def hash(self, contrasena, salt):
         """
         PBKDF2 es una función criptográfica que se utiliza para derivar una clave secreta a partir de una contraseña y un salt.
@@ -106,12 +86,13 @@ class BaseDeDatos():
         """
         # Salt aleatorio, lo que crea una cadena de 16 bytes (128 bits) de entropía aleatoria.
         #salt = os.urandom(16)
-        #guardar_salt = salt
+        #respaldo_salt = salt
 
         # Aplicacion del Hash
         try:
             hash_contrasena = hashlib.pbkdf2_hmac("sha256", contrasena.encode("utf-8"), salt, 10000)
             return hash_contrasena
+        
         except Exception as error:
             return f"Tipo de error: {error}"
         # Ademas de todo el encriptado, el resultado se pasa a Base16.

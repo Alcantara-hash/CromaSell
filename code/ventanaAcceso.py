@@ -3,6 +3,7 @@ from tkinter import messagebox
 from baseDeDatos2 import BaseDeDatos
 from baseDeDatos2 import archivo_JSON
 from ventanaPanel import VentanaPanel
+from ventanaCuentas import VentanaCuentas
 
 class VentanaAcceso(tk.Tk):
 
@@ -24,6 +25,8 @@ class VentanaAcceso(tk.Tk):
         self.usuario_entry = tk.Entry(self) # Se deja como atributo general "self.", pq despues se recolecta lo que almacena
         self.usuario_entry.pack(pady = 5)
 
+        siguiente_button = tk.Button(self, text = "Siguiente", command= self.pedir_contrasena)
+
         contrasena_label = tk.Label(self, text = "Contrasena")
         contrasena_label.pack()
         
@@ -32,36 +35,47 @@ class VentanaAcceso(tk.Tk):
 
         acceso_button = tk.Button(self, text = "Iniciar Sesión", command = self.acceso)
         acceso_button.pack(pady = 10)
+
+        crearCuenta_button = tk.Button(self, text = "Crear cuenta", command = self.crear_cuenta)
+        crearCuenta_button.pack()
     
     def acceso(self):
-        # Obtener datos tanto de "Usuario", como de "Contrasena"
+        
         usuario = self.usuario_entry.get()
-        contrasena = self.mysql.hash(self.contrasena_entry.get())
+        contrasena = self.contrasena_entry.get()
 
-        # Importar las credenciales de acceso a la BD
+        # Conexión a la BD
         datos_JSON = archivo_JSON()
         host, user, password, database = datos_JSON.leer_JSON()
-        # Conexión a la BD
         conn = self.mysql.conexion(host, user, password, database)
+        # Evaluar la conexión
         if isinstance(conn, str):
             messagebox.showerror("Error", conn)
+
         else:
             messagebox.showinfo("Aviso", "Conexión exitosa")
-            #self.mysql.cerrar_conexion()
-            credenciales_bd = self.mysql.obtener_datos("SELECT COUNT(*) FROM cuentas WHERE usuario = %s and contrasena = %s", (usuario, contrasena))
 
+            contrasena_hash = self.mysql.hash()
+
+            credenciales_bd = self.mysql.obtener_datos("SELECT * FROM cuentas WHERE usuario = %s and contrasena = %s", (usuario, contrasena))
             if isinstance(credenciales_bd, str):
                 messagebox.showerror("Error", credenciales_bd)
             else:
-                """
-                resultado = credenciales_bd[0]
-                if resultado > 0:
-                    ventanaPanel = VentanaPanel()
-                    ventanaPanel.mainloop()
-                else:
-                    messagebox.showwarning("Aviso", "Cuenta no encontrada")
-                """
-                messagebox.showinfo("aviso", credenciales_bd)
+                for dato in credenciales_bd:
+                    print(dato)
+
+            for dato in credenciales_bd:
+                print(dato)
+                #messagebox.showinfo("aviso", credenciales_bd)
+    
+    def pedir_contrasena(self):
+        pass
+
+    def crear_cuenta(self):
+        #self.withdraw()
+        ventanaCuentas = VentanaCuentas()
+        ventanaCuentas.mainloop()
+        
 
 if __name__ == '__main__':
 

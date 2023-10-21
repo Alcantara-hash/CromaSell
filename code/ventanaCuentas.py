@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from baseDeDatos2 import archivo_JSON
 from baseDeDatos2 import BaseDeDatos
+import os
 
 class VentanaCuentas(tk.Tk):
     def __init__(self):
@@ -46,20 +47,30 @@ class VentanaCuentas(tk.Tk):
         else:
             contrasena = str(self.contrasena2_entry)
             try:
-                # Credenciales de acceso a la BD
+                # Conexión a la BD
                 datos_JSON = archivo_JSON()
                 host, user, password, database = datos_JSON.leer_JSON()
+                conn = self.mysql.conexion(host, user, password, database)
+                # Evaluar la conexión
+                if isinstance(conn, str):
+                    messagebox.showerror("No se logro la conexion a la base de datos.\n{conn}")
+                    
+                else:
+                    # Hashear contraseña
+                    salt = os.urandom(16)
+                    contrasena_hash = self.mysql.hash(contrasena, salt)
 
-                # Conexion a la Base de Datos
-                self.mysql.conexion(host, user, password, database)
+                    # Guardar el resultado en la BD
+                    save = self.mysql.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s)",(usuario, contrasena_hash, salt))
+                    if isinstance(save, str):
+                        messagebox.showerror("La cuenta no se creo con exito.", save)
+                    else:
+                        messagebox.showinfo("Aviso", "Cuenta almacenada con exito")
 
-                contrasena_hasheada, salt = self.mysql.hash(contrasena)
-                self.mysql.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s)",(usuario, contrasena_hasheada, salt))
-
-                messagebox.showinfo("Aviso", "Cuenta almacenada con exito")
+                    self.mysql.cerrar_conexion()
 
             except Exception as e:
-                messagebox.showerror("Error de conexíon", str(e))
+                    messagebox.showerror("Error de conexíon", str(e))
 
 if __name__ == '__main__':
     app = VentanaCuentas()
