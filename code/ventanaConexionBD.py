@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from baseDeDatos2 import BaseDeDatos
+from baseDeDatos import BaseDeDatos
 import json
 
 class ventanaConexionBD(tk.Tk):

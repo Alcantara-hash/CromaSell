@@ -1,73 +1,125 @@
-# Cambiar la conexion de BD Local, a Cliente - Servidor.
-import sqlite3
-import hashlib
-import os
+from __future__ import print_function
+import mysql.connector
+from mysql.connector import errorcode
+import json
+from tkinter import messagebox as msj
+import bcrypt
 
-class BaseDeDatos:
+class archivo_JSON():
     def __init__(self):
+        pass
 
-        self.conn = sqlite3.connect("cromasell_BD")
-        self.cursor = self.conn.cursor()
+    def crear_JSON(self, host, user, password, database):
+        datos_JSON = {
+            "host":host,
+            "user":user,
+            "password":password,
+            "database":database
+        }
+        try:
+            with open("config.json", "w") as archivo_JSON:
+                json.dump(datos_JSON, archivo_JSON)
+        except PermissionError:
+            print("No tienes los permisos para guardar el archivo.")
+        except OSError as e:
+            print(f"Error al guardar el archivo JSON: {e}")
 
-    def crear_tablas(self):
-        self.cursor.execute('''
-                            CREATE TABLE IF NOT EXISTS usuarios (
-                                ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                usuario TEXT NOT NULL,
-                                salt TEXT NOT NULL,
-                                contrasena TEXT NOT NULL
-                            )
-                            ''')
-        self.conn.commit()
+    def leer_JSON(self):
+        with open("config.json", "r") as archivo_JSON:
+            datos_JSON = json.load(archivo_JSON)
+        
+        host = datos_JSON["host"]
+        user = datos_JSON["user"]
+        password = datos_JSON["password"]
+        database = datos_JSON["database"]
 
-    def agregar_usuarios(self, usuario, contrasena):
+        return  host, user, password, database
 
-        """
-        El "salt" (sal) es una cadena aleatoria que se genera para cada usuario y se combina con su contraseña antes de 
-        aplicar la función de derivación de clave (PBKDF2). Esto añade una capa adicional de seguridad a las contraseñas
-        almacenadas en la base de datos.
-        """
-        # Salt aleatorio, lo que crea una cadena de 16 bytes (128 bits) de entropía aleatoria.
-        salt = os.urandom(16)
-        """
-        PBKDF2 es una función criptográfica que se utiliza para derivar una clave secreta a partir de una contraseña y un salt.
-        """
-        """
-        En el código, se utiliza hashlib.pbkdf2_hmac para aplicar PBKDF2 con el algoritmo de hash SHA-256 y 100,000 iteraciones. 
-        Esto significa que el proceso se realiza 100,000 veces para aumentar la seguridad.
-        """
-        hash_contrasena = hashlib.pbkdf2_hmac("sha256", contrasena.encode("utf-8"), salt, 10000)
-        # Ademas de todo el encriptado, el resultado se pasa a Base16.
-        hash_contrasena.hex()
+    def actualizar_JSON(self):
+        pass
 
-        self.cursor.execute("INSERT INTO usuarios(usuario, salt, contrasena) VALUES(?, ?, ?)", (usuario, salt, hash_contrasena))
-        self.conn.commit()
-    
-    def obtener_todos_los_usuarios(self):
-        self.cursor.execute("SELECT * FROM usuarios")
-        return self.cursor.fetchall()
+class BaseDeDatos():
+    def __init__(self):
+        self.connection = None
+        self.cursor = None
+
+    def conexion(self):
+        try:
+            # Instancia archivo_JSON()
+            credenciales_bd = archivo_JSON()
+            host, user, password, database = credenciales_bd.leer_JSON() # Extraer credenciales
+
+            # Crear conexión
+            self.connection = mysql.connector.connect(
+                host = host,
+                user = user, 
+                password = password, 
+                database = database
+                )
+            
+            # Crear cursor
+            self.cursor = self.connection.cursor()
+            return True
+        
+        except mysql.connector.Error as e:
+            return str(e)
+
     
     def cerrar_conexion(self):
-        self.conn.close()
+        try:
+            self.cursor.close()
+            self.connection.close()
+            return True
+        except mysql.connector.Error as e:
+            return e
 
-if __name__ == '__main__':
+    def crear_BD():
 
-    bd = BaseDeDatos()
-    #bd.crear_tablas()
+        DB_NAME = "cromasell"
+        TABLES = {}
 
-    """
-    """
-    #bd.agregar_usuarios("rebeca", "hola 123")
-    """
-    """
-    print("Todos los usuarios: ")
-    usuarios = bd.obtener_todos_los_usuarios()
-    for usuario in usuarios:
-        print(usuario)
+        TABLES["cuentas"] = (
+            "CREATE TABLE cuentas("
+            "ID int(11) NOT NULL AUTO_INCREMENT,"
+            "usuario VARCHAR(20) NOT NULL,"
+            "contrasena VARCHAR(150) NOT NULL,"
+            "salt VARCHAR(30) NOT NULL,"
+            "PRIMARY KEY(ID)"
+            ") ENGINE=InnoDB"
+        )
 
-    """
-    bd.cursor.execute("INSERT INTO usuarios (nombre, apellido, edad) VALUES (?, ?, ?)",("John", "Doe", 30))
-    bd.conn.commit()
-    """
+    def ejecutar_consulta(self, query, values= None):
+        try:
+            self.cursor.execute(query, values)
+            self.connection.commit()
+            return True
+        
+        except mysql.connector.Error as e:
+            return e
     
-    bd.cerrar_conexion()
+    def obtener_datos(self, query, values= None):
+        try:
+            self.cursor.execute(query, values)
+            datos = self.cursor.fetchall()
+            return True, datos
+
+        except mysql.connector.Error as e:
+            return False, e
+    
+    def hash(self, contrasena = None, salt_in = None):
+        try:
+            # salt
+            if salt_in is None:
+                salt = bcrypt.gensalt()
+                contrasena_hash = bcrypt.hashpw(contrasena, salt)
+                return True, contrasena_hash, salt
+            else:
+                salt = salt_in
+                contrasena_hash = bcrypt.hashpw(contrasena, salt)
+                return True, contrasena_hash
+        
+        except Exception as e:
+            return False, e
+
+if __name__ == "__main__":
+    pass

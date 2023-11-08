@@ -8,22 +8,15 @@ class VentanaPanel(tk.Tk):
         super().__init__()
 
         # Aspectos de la ventana
-        """
         self.title("CromaSell")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
-
-        # Widgets de la ventana principal
-        prueba_label = tk.Label(self, text = "Ventana Panel")
-        prueba_label.pack()
-
-        agregarCuentas_button = tk.Button(self, text= "Agregar cuenta", command= self.agregar_cuentas)
-        agregarCuentas_button.pack()
         """
         self.title("Panel")
         self.geometry("1350x650")  
         self.resizable(width=False, height=False)  
+        """
         try:
-            self.fondo = PhotoImage(file="code/fondo_m.png")
+            self.fondo = PhotoImage(file="img/fondo_m.png")
             self.fondo = self.fondo.subsample(self.fondo.width() // 1350, self.fondo.height() // 650)
             fondo_label = tk.Label(self, image=self.fondo)
             fondo_label.grid(row=0, column=0, rowspan=2, columnspan=1)

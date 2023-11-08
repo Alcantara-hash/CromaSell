@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
-from baseDeDatos2 import BaseDeDatos
-from baseDeDatos2 import archivo_JSON
+from baseDeDatos import BaseDeDatos
 from ventanaPanel import VentanaPanel
 from ventanaCuentas import VentanaCuentas
+import bcrypt
 
 class VentanaAcceso(tk.Tk):
 
@@ -16,63 +16,66 @@ class VentanaAcceso(tk.Tk):
         # Atributos de la ventana
         self.title("Acceso")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
+        #self.iconbitmap("img/logo t.ico")
 
-        # Widgets de la ventana "Acceso"
-
-        usuario_label = tk.Label(self, text = "Usuario")
-        usuario_label.pack(pady = 10)
-
+        usuario_label = tk.Label(self, text= "Usuario:")
+        usuario_label.pack()
         self.usuario_entry = tk.Entry(self) # Se deja como atributo general "self.", pq despues se recolecta lo que almacena
-        self.usuario_entry.pack(pady = 5)
+        self.usuario_entry.pack()
 
-        siguiente_button = tk.Button(self, text = "Siguiente", command= self.pedir_contrasena)
-
-        contrasena_label = tk.Label(self, text = "Contrasena")
+        #Frame para la contrasena
+        contrasena_label = tk.Label(self, text= "Contraseña")
         contrasena_label.pack()
-        
-        self.contrasena_entry = tk.Entry(self, show = "*")
-        self.contrasena_entry.pack(pady = 5)
+        self.contrasena_entry = tk.Entry(self)
+        self.contrasena_entry.pack()
 
         acceso_button = tk.Button(self, text = "Iniciar Sesión", command = self.acceso)
-        acceso_button.pack(pady = 10)
+        acceso_button.pack()
 
+        # Boton para crear una cuenta para accesar
         crearCuenta_button = tk.Button(self, text = "Crear cuenta", command = self.crear_cuenta)
         crearCuenta_button.pack()
     
     def acceso(self):
-        
-        usuario = self.usuario_entry.get()
-        contrasena = self.contrasena_entry.get()
+        try:
+            # Credenciales ingresadas
+            usuario = self.usuario_entry.get()
+            contrasena_in = self.contrasena_entry.get()
+            contrasena = str(contrasena_in)
 
-        # Conexión a la BD
-        datos_JSON = archivo_JSON()
-        host, user, password, database = datos_JSON.leer_JSON()
-        conn = self.mysql.conexion(host, user, password, database)
-        # Evaluar la conexión
-        if isinstance(conn, str):
-            messagebox.showerror("Error", conn)
-
-        else:
-            messagebox.showinfo("Aviso", "Conexión exitosa")
-
-            contrasena_hash = self.mysql.hash()
-
-            credenciales_bd = self.mysql.obtener_datos("SELECT * FROM cuentas WHERE usuario = %s and contrasena = %s", (usuario, contrasena))
-            if isinstance(credenciales_bd, str):
-                messagebox.showerror("Error", credenciales_bd)
+            # Base de datos
+            conexion = self.mysql.conexion()
+            if conexion is True:
+                bool_consulta, consulta = self.mysql.obtener_datos("SELECT contrasena, salt FROM cuentas WHERE usuario = %s", (usuario, ))
+                if bool_consulta is True:
+                    try:
+                        # Credenciales obtenidas de la base de datos
+                        for fila in consulta:
+                            contrasena_bd = fila[0]
+                            salt_bd = fila[1]
+                        # Evaluar las credenciales ingresadas con las obtenidas de la bd
+                            # aplicar hash a la contrasena
+                        #messagebox.showwarning("probar cadena contrasena", contrasena)
+                        salt_bytes = salt_bd.encode("utf-8")
+                        contrasena_hash = bcrypt.hashpw(contrasena.encode("utf-8"), salt_bytes)
+                        if contrasena_hash == contrasena_bd.encode("utf-8"):
+                            ventanapanel = VentanaPanel()
+                            ventanapanel.mainloop()
+                        else:
+                            messagebox.showwarning(None, f"La contrasena es incorrecta:\npass_bd: {contrasena_bd}\npass_in: {contrasena_hash}")
+                    except Exception as e:
+                        messagebox.showwarning(None, e)
+                else:
+                    messagebox.showerror("Error en la consulta", consulta)
             else:
-                for dato in credenciales_bd:
-                    print(dato)
+                messagebox.showerror("Error en la conexion", conexion)
 
-            for dato in credenciales_bd:
-                print(dato)
-                #messagebox.showinfo("aviso", credenciales_bd)
-    
-    def pedir_contrasena(self):
-        pass
+        except Exception as e:
+            messagebox.showwarning(None, e)
+        
+        
 
     def crear_cuenta(self):
-        #self.withdraw()
         ventanaCuentas = VentanaCuentas()
         ventanaCuentas.mainloop()
         

@@ -1,14 +1,12 @@
 import tkinter as tk
 from tkinter import messagebox
-from baseDeDatos2 import archivo_JSON
-from baseDeDatos2 import BaseDeDatos
-import os
+from baseDeDatos import BaseDeDatos
 
-class VentanaCuentas(tk.Tk):
+class VentanaCuentas(tk.Tk, BaseDeDatos):
     def __init__(self):
         super().__init__()
 
-        # Instancia de BaseDeDatos
+        # Instancia BD
         self.mysql = BaseDeDatos()
 
         # Aspectos de la ventana
@@ -38,39 +36,35 @@ class VentanaCuentas(tk.Tk):
         agregarUsuario_button.pack()
 
     def agregar_cuenta(self):
-
-        usuario = str(self.usuario_entry.get())
+        # Evaluar que las dos contrasenas sean iguales
         if self.contrasena_entry.get() != self.contrasena2_entry.get():
-            contrasena = self.contrasena2_entry
             messagebox.showerror("Error", "Las contrasenas no coinciden")
-            # Establecer conexion a la BD
         else:
-            contrasena = str(self.contrasena2_entry)
             try:
-                # Conexión a la BD
-                datos_JSON = archivo_JSON()
-                host, user, password, database = datos_JSON.leer_JSON()
-                conn = self.mysql.conexion(host, user, password, database)
-                # Evaluar la conexión
-                if isinstance(conn, str):
-                    messagebox.showerror("No se logro la conexion a la base de datos.\n{conn}")
-                    
-                else:
-                    # Hashear contraseña
-                    salt = os.urandom(16)
-                    contrasena_hash = self.mysql.hash(contrasena, salt)
-
-                    # Guardar el resultado en la BD
-                    save = self.mysql.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s)",(usuario, contrasena_hash, salt))
-                    if isinstance(save, str):
-                        messagebox.showerror("La cuenta no se creo con exito.", save)
+                # Credenciales ingresadas
+                usuario = self.usuario_entry.get()
+                contrasena = self.contrasena2_entry.get()
+                # Base de datos
+                conexion = self.mysql.conexion()
+                if conexion is True:
+                    # Aplicar hash a contrasena
+                    bool_hash, contrasena_hash, salt_hash = self.mysql.hash(contrasena.encode("utf-8"), None)
+                    if bool_hash is True:
+                        guardar_cuenta = self.mysql.ejecutar_consulta("INSERT INTO cuentas(usuario, contrasena, salt) VALUES(%s, %s, %s)", (usuario, contrasena_hash, salt_hash))
+                        if guardar_cuenta is True:
+                            messagebox.showinfo("Aviso", "Cuenta generada con exito")
+                            self.mysql.cerrar_conexion()
+                        else:
+                            messagebox.showerror("Error en la consulta", guardar_cuenta)
                     else:
-                        messagebox.showinfo("Aviso", "Cuenta almacenada con exito")
-
-                    self.mysql.cerrar_conexion()
-
+                        messagebox.showerror("Error de hash", bool_hash)
+                else:
+                    messagebox.showerror("Error de conexion", conexion)
+                
             except Exception as e:
-                    messagebox.showerror("Error de conexíon", str(e))
+                messagebox.showwarning(None, e)
+
+
 
 if __name__ == '__main__':
     app = VentanaCuentas()
