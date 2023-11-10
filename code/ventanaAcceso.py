@@ -5,7 +5,7 @@ from ventanaPanel import VentanaPanel
 from ventanaCuentas import VentanaCuentas
 import bcrypt
 
-class VentanaAcceso(tk.Tk):
+class VentanaAcceso(tk.Tk,):
 
     def __init__(self):
         super().__init__()
@@ -13,10 +13,13 @@ class VentanaAcceso(tk.Tk):
         # Instancia BaseDeDatos
         self.mysql = BaseDeDatos()
 
+    
+    def atributosVentana(self):
+    
         # Atributos de la ventana
         self.title("Acceso")
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
-        #self.iconbitmap("img/logo t.ico")
+        self.iconbitmap("img/logo t.ico")
 
         usuario_label = tk.Label(self, text= "Usuario:")
         usuario_label.pack()
@@ -35,6 +38,7 @@ class VentanaAcceso(tk.Tk):
         # Boton para crear una cuenta para accesar
         crearCuenta_button = tk.Button(self, text = "Crear cuenta", command = self.crear_cuenta)
         crearCuenta_button.pack()
+
     
     def acceso(self):
         try:
@@ -72,8 +76,6 @@ class VentanaAcceso(tk.Tk):
 
         except Exception as e:
             messagebox.showwarning(None, e)
-        
-        
 
     def crear_cuenta(self):
         ventanaCuentas = VentanaCuentas()
@@ -83,4 +85,5 @@ class VentanaAcceso(tk.Tk):
 if __name__ == '__main__':
 
     app = VentanaAcceso()
+    app.atributosVentana()
     app.mainloop()
