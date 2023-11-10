@@ -1,13 +1,10 @@
-from __future__ import print_function
 import mysql.connector
-from mysql.connector import errorcode
 import json
-from tkinter import messagebox as msj
 import bcrypt
 
 class archivo_JSON():
     def __init__(self):
-        pass
+        self.error = None
 
     def crear_JSON(self, host, user, password, database):
         datos_JSON = {
@@ -62,7 +59,8 @@ class BaseDeDatos():
             return True
         
         except mysql.connector.Error as e:
-            return str(e)
+            self.error = e
+            return self.error
 
     
     def cerrar_conexion(self):
@@ -88,6 +86,7 @@ class BaseDeDatos():
             ") ENGINE=InnoDB"
         )
 
+        
     def ejecutar_consulta(self, query, values= None):
         try:
             self.cursor.execute(query, values)
